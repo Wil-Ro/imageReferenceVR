@@ -116,7 +116,7 @@ class MyGadget extends React.Component< {}, {} >
 	}
 
 	public openWindow(){
-		window.open("https://www.bbc.co.uk/", "bbc")
+		window.open("https://www.bbc.co.uk/", "bbc") // this should open the page to upload images too, just testing if it would work in a separate non-vr project
 	}
 
 	
@@ -146,6 +146,7 @@ renderAardvarkRoot( "root", <MyGadget/> );
 todo:
 it works!! just clean things up abit, make images fit screen size, make panel size changable maybe?
 sliders dont work, maybe use buttons?
+make an upload button that pops up
 
 useful links:
 http://localhost:23842/gadgets/aardvark_monitor/index.html
