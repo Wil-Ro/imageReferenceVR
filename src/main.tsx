@@ -40,12 +40,7 @@ class ImageMenu extends React.Component< {}, ImageMenuState> //class for the who
 
 		this.state =
 		{
-			imageUrls:
-			[
-				"https://www.pfw.edu/microsites/native-trees/images/trees/g-n/full/kentucky-coffeetree-habit-original-01.jpg", 
-				"https://www.pencilkings.com/wp-content/uploads/2013/09/finishedfacedrawingproportionsexamples.jpg", 
-				"https://upload.wikimedia.org/wikipedia/commons/0/06/EnglishSpotRabbitChocolate1(cropped).jpg"
-			],
+			imageUrls: [],
 		}
 
 		this.imageToDisplay = "";
@@ -56,9 +51,15 @@ class ImageMenu extends React.Component< {}, ImageMenuState> //class for the who
 	{
 		this.setState( 
 			{
-				imageUrls: [ ...this.state.imageUrls, url ]
+				imageUrls: [ ...this.state.imageUrls, url]
 			}
 		);
+	}
+
+	@bind
+	public validateUrl(url:string)
+	{
+		return(url && !this.state.imageUrls.includes(url) ? true : false)
 	}
 
 
@@ -128,6 +129,7 @@ class ImageMenu extends React.Component< {}, ImageMenuState> //class for the who
 interface ImageAddedProps
 {
 	addImageCallback: ( url: string ) => void;
+	validateUrlCallback: ( url: string ) => boolean;
 }
 
 interface ImageAdderState
@@ -151,10 +153,19 @@ class ImageAdder extends React.Component< ImageAddedProps, ImageAdderState >
 	}
 	
 	@bind
-	private handleSubmit(event: React.FormEvent< HTMLFormElement > ) 
+	private handleSubmit(event: React.FormEvent< HTMLFormElement > )
 	{
-		this.props.addImageCallback( this.state.url );
-		event.preventDefault();
+		if (this.props.validateUrlCallback(this.state.url))
+		{
+			this.props.addImageCallback( this.state.url );
+			event.preventDefault();
+		}
+		else
+		{
+			alert("given image is invalid"); //could eventually replace this with something on the render
+			event.preventDefault();
+		}
+		
 	}
 
 	render()
@@ -202,7 +213,7 @@ class MyGadget extends React.Component< {}, {} >
 		this.addImagePopup = window.open("", "popup", "", true );
 		this.addImagePopup.document.write( k_popupHtml );
 
-		ReactDOM.render( <ImageAdder addImageCallback={ this.imageMenuRef?.current.onAddImage }/>, 
+		ReactDOM.render( <ImageAdder addImageCallback={ this.imageMenuRef?.current.onAddImage } validateUrlCallback={this.imageMenuRef.current.validateUrl}/>, 
 			this.addImagePopup.document.getElementById( "root" ) );
 	}
 
@@ -230,9 +241,16 @@ renderAardvarkRoot( "root", <MyGadget/> );
 //DONT FORGET TO RUN NPM START AAAAAAAAAAAAAAAAAAAA YOU ALWAYS FORGETTT
 /*
 todo:
-it works!! just clean things up abit, make images fit screen size, make panel size changable maybe?
-sliders dont work, maybe use buttons?
-make an upload button that pops up
+look into using URL.CreateObjectUrl() to let users 'upload' images as well as giving URLs
+look into using ipfs for this^^
+look into using avmodel to create pop-up images
+make pop-up text box clear itself after submittion
+
+theres two options for validation and both have issues:
+-we validate inside onAddImage(), this would mean we'd have to control the pop-up from that function to warn the user
+-we validate inside the pop-up, that means we dont have access to the url list so dealing with duplicates would be harder
+-oh, a third option, we could create a validate function within ImageMenu that we call from the pop-up. This is just the second solution but instead of passing a list or a copy of the list we just reference a function.
+^thats encapsulated too, you'd avoid so many errors
 
 useful links:
 http://localhost:23842/gadgets/aardvark_monitor/index.html
