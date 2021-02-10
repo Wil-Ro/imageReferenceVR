@@ -12,6 +12,7 @@ interface ImageAddedProps
 interface ImageAdderState
 {
 	url: string;
+	message: string;
 }
 
 export class ImageAdder extends React.Component< ImageAddedProps, ImageAdderState >
@@ -22,7 +23,10 @@ export class ImageAdder extends React.Component< ImageAddedProps, ImageAdderStat
 	{
 		super( props );
 
-		this.state = { url: "" };
+		this.state = { 
+			url: "",
+			message: "Add image url here:",
+	 };
 
 		IPFS.create().
 		then( async ( newNode: any ) =>
@@ -49,9 +53,10 @@ export class ImageAdder extends React.Component< ImageAddedProps, ImageAdderStat
 		}
 		else
 		{
-			alert("given image is invalid"); //could eventually replace this with something on the render
+			this.setState({message: "this image is either already in the list or not an image"});
 			event.preventDefault();
 		}
+		this.setState({url: ""});
 		
 	}
 
@@ -87,11 +92,13 @@ export class ImageAdder extends React.Component< ImageAddedProps, ImageAdderStat
 			<div>
 				<form onSubmit={ this.handleSubmit }>
 					<label>
-						Image URL to add:
-						<input type="text" value={this.state.url } onChange={this.handleChange} />
+						{this.state.message}
+						<br/>
+						<input type="text" value={this.state.url} onChange={this.handleChange} />
 					</label>
 					<input type="submit" value="Submit" />
 				</form>
+
 				<Dropzone onDrop={ this.onDrop }>
 				{({getRootProps, getInputProps}) => (
 					<section>
