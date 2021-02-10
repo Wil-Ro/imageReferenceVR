@@ -4,7 +4,7 @@ import bind from 'bind-decorator';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-class MenuItem extends React.Component< {displayImage, onClick}, {}> //class for items on the menu, basically just a button
+class MenuItem extends React.Component< {displayImage, onClick, deleteSelfCallback}, {}> //class for items on the menu, basically just a button
 {
 	constructor(props)
 	{
@@ -14,13 +14,16 @@ class MenuItem extends React.Component< {displayImage, onClick}, {}> //class for
 	static defaultProps = {
 		displayImage: "https://cdn.pixabay.com/photo/2013/07/12/17/47/test-pattern-152459_960_720.png"
 	}
-
+	
 	public render()
 	{
 		return(
+			<div className = "imageMenuButtonContainer">
 				<button className = "imageMenuButton" onClick = {this.props.onClick}>
 					<img src = {this.props.displayImage} className = "imageMenuImage"/>
 				</button>
+				<button className = "imageMenuDeleteButton" onClick = {this.props.deleteSelfCallback}>X</button>
+			</div>
 		);
 	}
 }
@@ -75,6 +78,13 @@ class ImageMenu extends React.Component< {}, ImageMenuState> //class for the who
 		this.forceUpdate();
 	}
 
+	public deleteListItem(item: string)
+	{
+		this.state.imageUrls.splice(this.state.imageUrls.indexOf(item), 1);
+		this.forceUpdate();
+		console.log(this.state.imageUrls)
+	}
+
 	public render()
 	{
 		if (this.imageToDisplay){ //if theres an image then show that, and also a back button
@@ -97,7 +107,7 @@ class ImageMenu extends React.Component< {}, ImageMenuState> //class for the who
 					};
 					return(
 					<div style = {itemStyle}> 
-						<MenuItem displayImage = {image} onClick = {() => this.displayImage(image)}/>
+						<MenuItem displayImage = {image} onClick = {() => this.displayImage(image)} deleteSelfCallback = {() => this.deleteListItem(image)}/>
 					</div> 
 					);
 				});
@@ -204,17 +214,22 @@ class MyGadget extends React.Component< {}, {} >
 	private addImagePopup: Window = null;
 	private imageMenuRef = React.createRef<ImageMenu>();
 
+
 	constructor( props: any )
 	{
 		super( props );
 	}
 
 	public openWindow(){
-		this.addImagePopup = window.open("", "popup", "", true );
-		this.addImagePopup.document.write( k_popupHtml );
+		
+		if (!this.addImagePopup || this.addImagePopup.closed)
+		{
+			this.addImagePopup = window.open("", "popup", "", true );
+			this.addImagePopup.document.write( k_popupHtml );
 
-		ReactDOM.render( <ImageAdder addImageCallback={ this.imageMenuRef?.current.onAddImage } validateUrlCallback={this.imageMenuRef.current.validateUrl}/>, 
-			this.addImagePopup.document.getElementById( "root" ) );
+			ReactDOM.render( <ImageAdder addImageCallback={ this.imageMenuRef?.current.onAddImage } validateUrlCallback={this.imageMenuRef.current.validateUrl}/>, 
+				this.addImagePopup.document.getElementById( "root" ) );
+		}
 	}
 
 
@@ -241,16 +256,8 @@ renderAardvarkRoot( "root", <MyGadget/> );
 //DONT FORGET TO RUN NPM START AAAAAAAAAAAAAAAAAAAA YOU ALWAYS FORGETTT
 /*
 todo:
-look into using URL.CreateObjectUrl() to let users 'upload' images as well as giving URLs
 look into using ipfs for this^^
 look into using avmodel to create pop-up images
-make pop-up text box clear itself after submittion
-
-theres two options for validation and both have issues:
--we validate inside onAddImage(), this would mean we'd have to control the pop-up from that function to warn the user
--we validate inside the pop-up, that means we dont have access to the url list so dealing with duplicates would be harder
--oh, a third option, we could create a validate function within ImageMenu that we call from the pop-up. This is just the second solution but instead of passing a list or a copy of the list we just reference a function.
-^thats encapsulated too, you'd avoid so many errors
 
 useful links:
 http://localhost:23842/gadgets/aardvark_monitor/index.html
