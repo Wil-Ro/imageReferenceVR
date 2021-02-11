@@ -3,27 +3,22 @@ import { EAction, EHand, g_builtinModelBox, InitialInterfaceLock, Av } from '@aa
 import bind from 'bind-decorator';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { ImageAdder } from './imageadder';
+import * as IPFS from 'ipfs';
 
-class MenuItem extends React.Component< {displayImage, onClick, deleteSelfCallback}, {}> //class for items on the menu, basically just a button
+class MenuItem extends React.Component< {displayImage, onClick}, {}> //class for items on the menu, basically just a button
 {
 	constructor(props)
 	{
 		super(props);
 	}
 
-	static defaultProps = {
-		displayImage: "https://cdn.pixabay.com/photo/2013/07/12/17/47/test-pattern-152459_960_720.png"
-	}
-	
 	public render()
 	{
 		return(
-			<div className = "imageMenuButtonContainer">
 				<button className = "imageMenuButton" onClick = {this.props.onClick}>
 					<img src = {this.props.displayImage} className = "imageMenuImage"/>
 				</button>
-				<button className = "imageMenuDeleteButton" onClick = {this.props.deleteSelfCallback}>X</button>
-			</div>
 		);
 	}
 }
@@ -78,13 +73,6 @@ class ImageMenu extends React.Component< {}, ImageMenuState> //class for the who
 		this.forceUpdate();
 	}
 
-	public deleteListItem(item: string)
-	{
-		this.state.imageUrls.splice(this.state.imageUrls.indexOf(item), 1);
-		this.forceUpdate();
-		console.log(this.state.imageUrls)
-	}
-
 	public render()
 	{
 		if (this.imageToDisplay){ //if theres an image then show that, and also a back button
@@ -107,7 +95,7 @@ class ImageMenu extends React.Component< {}, ImageMenuState> //class for the who
 					};
 					return(
 					<div style = {itemStyle}> 
-						<MenuItem displayImage = {image} onClick = {() => this.displayImage(image)} deleteSelfCallback = {() => this.deleteListItem(image)}/>
+						<MenuItem displayImage = {image} onClick = {() => this.displayImage(image)}/>
 					</div> 
 					);
 				});
@@ -136,62 +124,6 @@ class ImageMenu extends React.Component< {}, ImageMenuState> //class for the who
 }
 
 
-interface ImageAddedProps
-{
-	addImageCallback: ( url: string ) => void;
-	validateUrlCallback: ( url: string ) => boolean;
-}
-
-interface ImageAdderState
-{
-	url: string;
-}
-
-class ImageAdder extends React.Component< ImageAddedProps, ImageAdderState >
-{
-	constructor( props: any )
-	{
-		super( props );
-
-		this.state = { url: "" };
-	}
-
-	@bind
-	private handleChange( event: React.ChangeEvent<HTMLInputElement> ) 
-	{
-		this.setState( { url: event.target.value });
-	}
-	
-	@bind
-	private handleSubmit(event: React.FormEvent< HTMLFormElement > )
-	{
-		if (this.props.validateUrlCallback(this.state.url))
-		{
-			this.props.addImageCallback( this.state.url );
-			event.preventDefault();
-		}
-		else
-		{
-			alert("given image is invalid"); //could eventually replace this with something on the render
-			event.preventDefault();
-		}
-		
-	}
-
-	render()
-	{
-		return (
-			<form onSubmit={ this.handleSubmit }>
-				<label>
-					Image URL to add:
-					<input type="text" value={this.state.url } onChange={this.handleChange} />
-				</label>
-				<input type="submit" value="Submit" />
-			</form> );
-	}
-}
-
-
 const k_popupHtml = 
 `
 <!DOCTYPE html>
@@ -214,22 +146,17 @@ class MyGadget extends React.Component< {}, {} >
 	private addImagePopup: Window = null;
 	private imageMenuRef = React.createRef<ImageMenu>();
 
-
 	constructor( props: any )
 	{
 		super( props );
 	}
 
 	public openWindow(){
-		
-		if (!this.addImagePopup || this.addImagePopup.closed)
-		{
-			this.addImagePopup = window.open("", "popup", "", true );
-			this.addImagePopup.document.write( k_popupHtml );
+		this.addImagePopup = window.open("", "popup", "", true );
+		this.addImagePopup.document.write( k_popupHtml );
 
-			ReactDOM.render( <ImageAdder addImageCallback={ this.imageMenuRef?.current.onAddImage } validateUrlCallback={this.imageMenuRef.current.validateUrl}/>, 
-				this.addImagePopup.document.getElementById( "root" ) );
-		}
+		ReactDOM.render( <ImageAdder addImageCallback={ this.imageMenuRef?.current.onAddImage } validateUrlCallback={this.imageMenuRef.current.validateUrl}/>, 
+			this.addImagePopup.document.getElementById( "root" ) );
 	}
 
 
@@ -256,8 +183,9 @@ renderAardvarkRoot( "root", <MyGadget/> );
 //DONT FORGET TO RUN NPM START AAAAAAAAAAAAAAAAAAAA YOU ALWAYS FORGETTT
 /*
 todo:
-look into using ipfs for this^^
+look into using ipfs for images
 look into using avmodel to create pop-up images
+
 
 useful links:
 http://localhost:23842/gadgets/aardvark_monitor/index.html
