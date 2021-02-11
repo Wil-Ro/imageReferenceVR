@@ -4,16 +4,13 @@ import bind from 'bind-decorator';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { ImageAdder } from './imageadder';
+import * as IPFS from 'ipfs';
 
 class MenuItem extends React.Component< {displayImage, onClick}, {}> //class for items on the menu, basically just a button
 {
 	constructor(props)
 	{
 		super(props);
-	}
-
-	static defaultProps = {
-		displayImage: "https://cdn.pixabay.com/photo/2013/07/12/17/47/test-pattern-152459_960_720.png"
 	}
 
 	public render()
@@ -186,16 +183,9 @@ renderAardvarkRoot( "root", <MyGadget/> );
 //DONT FORGET TO RUN NPM START AAAAAAAAAAAAAAAAAAAA YOU ALWAYS FORGETTT
 /*
 todo:
-look into using URL.CreateObjectUrl() to let users 'upload' images as well as giving URLs
-look into using ipfs for this^^
+look into using ipfs for images
 look into using avmodel to create pop-up images
-make pop-up text box clear itself after submittion
 
-theres two options for validation and both have issues:
--we validate inside onAddImage(), this would mean we'd have to control the pop-up from that function to warn the user
--we validate inside the pop-up, that means we dont have access to the url list so dealing with duplicates would be harder
--oh, a third option, we could create a validate function within ImageMenu that we call from the pop-up. This is just the second solution but instead of passing a list or a copy of the list we just reference a function.
-^thats encapsulated too, you'd avoid so many errors
 
 useful links:
 http://localhost:23842/gadgets/aardvark_monitor/index.html

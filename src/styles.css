@@ -81,6 +81,7 @@ button{
 #noImageText{
 	font-size: 3rem;
 	color: grey;
+	background-color: white;
 	margin: 0 auto;
 }
 

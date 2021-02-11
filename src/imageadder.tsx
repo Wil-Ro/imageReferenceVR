@@ -61,13 +61,15 @@ export class ImageAdder extends React.Component< ImageAddedProps, ImageAdderStat
 	}
 
 	@bind 
-	private async onFileLoad( file: File, result: ArrayBuffer )
+	private async onFileLoad( file: File, result: ArrayBuffer ) //we add the binaries to the ipfs node then convert it into a blob we can display, when accessing this from a remote gadget you'll need to create a blob since we havent uploaded this as one
 	{
 		let res = await this.ipfsNode.add( new Uint8Array( result ) );
 		
 		const url = "/ipfs/" + res.cid;
 		console.log( `Adding ${ file.name } as ${ url }` );
-		this.props.addImageCallback( url );
+		const blobData: ArrayBuffer[] = [result];
+		const imageBlob = new Blob(blobData);
+		this.props.addImageCallback( URL.createObjectURL(imageBlob) );
 	}
 
 	@bind
