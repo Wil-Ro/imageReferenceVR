@@ -6,7 +6,7 @@ import * as ReactDOM from 'react-dom';
 import { ImageAdder } from './imageadder';
 import * as IPFS from 'ipfs';
 
-class MenuItem extends React.Component< {displayImage, onClick}, {}> //class for items on the menu, basically just a button
+class MenuItem extends React.Component< {displayImage, onClick, deleteSelfCallback}, {}> //class for items on the menu, basically just a button
 {
 	constructor(props)
 	{
@@ -16,9 +16,12 @@ class MenuItem extends React.Component< {displayImage, onClick}, {}> //class for
 	public render()
 	{
 		return(
+			<div className = "imageMenuButtonContainer">
 				<button className = "imageMenuButton" onClick = {this.props.onClick}>
 					<img src = {this.props.displayImage} className = "imageMenuImage"/>
 				</button>
+				<button className = "imageMenuDeleteButton" onClick = {this.props.deleteSelfCallback}>X</button>
+			</div>
 		);
 	}
 }
@@ -73,12 +76,18 @@ class ImageMenu extends React.Component< {}, ImageMenuState> //class for the who
 		this.forceUpdate();
 	}
 
+	public deleteListItem(item: string)
+	{
+		this.state.imageUrls.splice(this.state.imageUrls.indexOf(item), 1);
+		this.forceUpdate();
+	}
+
 	public render()
 	{
 		if (this.imageToDisplay){ //if theres an image then show that, and also a back button
 			return(
 				<div>
-					<button className = "imageDisplayButton" onClick = {() => this.removeImage()}>ᐊ</button>
+					<button className = "imageDisplayBackButton" onClick = {() => this.removeImage()}>ᐊ</button>
 					<div style = {{textAlign: "center"}}>
 						<img className = "displayedImage" src = {this.imageToDisplay}/>	
 					</div>
@@ -95,7 +104,7 @@ class ImageMenu extends React.Component< {}, ImageMenuState> //class for the who
 					};
 					return(
 					<div style = {itemStyle}> 
-						<MenuItem displayImage = {image} onClick = {() => this.displayImage(image)}/>
+						<MenuItem displayImage = {image} onClick = {() => this.displayImage(image)} deleteSelfCallback = {() => this.deleteListItem(image)}/>
 					</div> 
 					);
 				});
@@ -183,7 +192,7 @@ renderAardvarkRoot( "root", <MyGadget/> );
 //DONT FORGET TO RUN NPM START AAAAAAAAAAAAAAAAAAAA YOU ALWAYS FORGETTT
 /*
 todo:
-look into using ipfs for images
+add ability for remote users?
 look into using avmodel to create pop-up images
 
 

@@ -4,9 +4,10 @@ body, html
 	height: 100%;
 	overflow: hidden;
 }
+
 button{
 	background-color: transparent;
-	border: 3px solid black;
+	border: border: 1px solid black;
 }
 
 .Button 
@@ -59,6 +60,7 @@ button{
 
 .imageMenuDeleteButton{
 	font-size: 2rem;
+	background-color: transparent;
 }
 
 .imageMenuImage{
@@ -82,18 +84,32 @@ button{
 	text-align: center;
 }
 
-.imageDisplayButton{
+.imageDisplayBackButton{
 	font-size: 3rem;
+	background-color: transparent;
+}
+
+.imageDisplayBackButton:hover{
+	background-color: rgba(128, 128, 128, 0.234);
+}
+
+.imageMenuDeleteButton:hover{
+	background-color: rgba(128, 128, 128, 0.234);
 }
 
 #noImageText{
 	font-size: 3rem;
-	color: grey;
-	background-color: white;
+	background-color: transparent;
 	margin: 0 auto;
+	border: 1px solid black
 }
 
 #uploadButton{
 	font-size: 3rem;
 	margin-top: 5vh;
+	background-color: transparent;
+}
+
+#uploadButton:hover{
+	background-color: rgba(128, 128, 128, 0.234);
 }
