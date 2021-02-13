@@ -20,20 +20,43 @@ class MenuItem extends React.Component< {displayImage, onClick, deleteSelfCallba
 				<button className = "imageMenuButton" onClick = {this.props.onClick}>
 					<img src = {this.props.displayImage} className = "imageMenuImage"/>
 				</button>
-				<button className = "imageMenuDeleteButton" onClick = {this.props.deleteSelfCallback}>X</button>
+				{ !AvGadget.instance().isRemote && 
+					<button className = "imageMenuDeleteButton" onClick = {this.props.deleteSelfCallback}>X</button> }
 			</div>
 		);
 	}
 }
 
-interface ImageMenuState
+interface ImageMenuEntry
 {
-	imageUrls: string[];	
+	localUrl: string;
+	remoteUrl: string;
 }
 
-class ImageMenu extends React.Component< {}, ImageMenuState> //class for the whole menu, basically just renders MenuItems according to list of images
+enum ImageMenuEventType
 {
-	imageToDisplay: string;
+	SetImage = "set_image",
+}
+
+interface ImageMenuEvent
+{
+	type: ImageMenuEventType;
+	url: string;
+}
+
+interface ImageMenuState
+{
+	imageUrls: ImageMenuEntry[];	
+}
+
+interface ImageMenuProps
+{
+	sendEventCallback: ( event: ImageMenuEvent ) => void;
+}
+
+class ImageMenu extends React.Component< ImageMenuProps, ImageMenuState> //class for the whole menu, basically just renders MenuItems according to list of images
+{
+	imageToDisplay: ImageMenuEntry = null;
 
 	constructor(props)
 	{
@@ -43,31 +66,48 @@ class ImageMenu extends React.Component< {}, ImageMenuState> //class for the who
 		{
 			imageUrls: [],
 		}
-
-		this.imageToDisplay = "";
 	}
 
 	@bind
-	public onAddImage( url: string )
+	public onAddImage( localUrl: string, remoteUrl: string )
 	{
 		this.setState( 
 			{
-				imageUrls: [ ...this.state.imageUrls, url]
+				imageUrls:
+				[ 
+					...this.state.imageUrls, 
+					{
+						localUrl,
+						remoteUrl,
+					}
+				]
 			}
 		);
 	}
 
 	@bind
-	public validateUrl(url:string)
+	public validateUrl( localUrl: string )
 	{
-		return(url && !this.state.imageUrls.includes(url) ? true : false)
+		return localUrl && this.findImageIndex( localUrl ) == -1;
 	}
 
 
-	public displayImage(image: string) //given to buttons, by setting the image to display we stop drawing the menu and start drawing the image, remove image undoes this, we also force an update here since we dont use state
+	private findImageIndex( localUrl: string )
+	{
+		return this.state.imageUrls.findIndex( ( value: ImageMenuEntry ) => value.localUrl == localUrl );
+	}
+
+	public displayImage( image: ImageMenuEntry ) //given to buttons, by setting the image to display we stop drawing the menu and start drawing the image, remove image undoes this, we also force an update here since we dont use state
 	{
 		this.imageToDisplay = image;
 		this.forceUpdate();
+
+		this.props.sendEventCallback(
+			{
+				type: ImageMenuEventType.SetImage,
+				url: image.remoteUrl,
+			}
+		);
 	}
 
 	public removeImage()
@@ -76,20 +116,26 @@ class ImageMenu extends React.Component< {}, ImageMenuState> //class for the who
 		this.forceUpdate();
 	}
 
-	public deleteListItem(item: string)
+	public deleteListItem(localUrl: string)
 	{
-		this.state.imageUrls.splice(this.state.imageUrls.indexOf(item), 1);
-		this.forceUpdate();
+		let i = this.findImageIndex( localUrl );
+		if( i != -1 )
+		{
+			this.state.imageUrls.splice( i, 1);
+			this.forceUpdate();
+		}
 	}
 
 	public render()
 	{
 		if (this.imageToDisplay){ //if theres an image then show that, and also a back button
+			const url = AvGadget.instance().isRemote ? this.imageToDisplay.remoteUrl : this.imageToDisplay.localUrl;
+
 			return(
 				<div>
 					<button className = "imageDisplayBackButton" onClick = {() => this.removeImage()}>ᐊ</button>
 					<div style = {{textAlign: "center"}}>
-						<img className = "displayedImage" src = {this.imageToDisplay}/>	
+						<img className = "displayedImage" src = { url }/>	
 					</div>
 				</div>
 			)
@@ -104,7 +150,7 @@ class ImageMenu extends React.Component< {}, ImageMenuState> //class for the who
 					};
 					return(
 					<div style = {itemStyle}> 
-						<MenuItem displayImage = {image} onClick = {() => this.displayImage(image)} deleteSelfCallback = {() => this.deleteListItem(image)}/>
+						<MenuItem displayImage = {image.localUrl} onClick = {() => this.displayImage(image)} deleteSelfCallback = {() => this.deleteListItem( image.localUrl )}/>
 					</div> 
 					);
 				});
@@ -149,15 +195,25 @@ const k_popupHtml =
 </html>
 `;
 
+interface MyGadgetState
+{
+	remoteUrl: string;
+}
 
-class MyGadget extends React.Component< {}, {} >
+class MyGadget extends React.Component< {}, MyGadgetState >
 {
 	private addImagePopup: Window = null;
 	private imageMenuRef = React.createRef<ImageMenu>();
+	private grabbableRef = React.createRef<AvStandardGrabbable>();
 
 	constructor( props: any )
 	{
 		super( props );
+
+		this.state = 
+		{
+			remoteUrl: null,
+		}
 	}
 
 	public openWindow(){
@@ -168,22 +224,98 @@ class MyGadget extends React.Component< {}, {} >
 			this.addImagePopup.document.getElementById( "root" ) );
 	}
 
+	@bind
+	private onRemoteEvent( event: ImageMenuEvent )
+	{
+		switch( event.type )
+		{
+			case ImageMenuEventType.SetImage:
+				{
+					this.setState( { remoteUrl: event.url } );
+				}
+				break;
+		}
+	}
 
-	public render()
+	private renderLocal()
 	{
 		return (
 			<div className={ "FullPage" } >
 				<div>
-					<AvStandardGrabbable modelUri={ "models/HandleModel.glb" } modelScale={ 0.8 }
-						style={ GrabbableStyle.Gadget }>
+					<AvStandardGrabbable modelUri={ "models/HandleModel.glb" } 
+						modelScale={ 0.8 }
+						style={ GrabbableStyle.Gadget }
+						remoteInterfaceLocks={ [] }
+						ref={ this.grabbableRef }
+						>
 						<AvTransform translateY={ 0.21 } >
 							<AvPanel interactive={true} widthInMeters={ 0.3 }/>
 						</AvTransform>
 					</AvStandardGrabbable>
 				</div>
-				<ImageMenu ref={ this.imageMenuRef }/>
+				<ImageMenu ref={ this.imageMenuRef }
+					sendEventCallback={ ( event: ImageMenuEvent ) => 
+						{ this.grabbableRef.current?.sendRemoteEvent( event, true ); } }/>
 				<button id = "uploadButton" onClick = { () => this.openWindow() }>🗅</button>
 			</div> );
+	}
+
+	private renderRemoteImage()
+	{
+		if (this.state.remoteUrl)
+		{
+			//if theres an image then show that
+			return(
+				<div>
+					<div style = {{textAlign: "center"}}>
+						<img className = "displayedImage" src = { this.state.remoteUrl  }/>	
+					</div>
+				</div>
+			)
+		}
+		else
+		{
+			return(
+			<div id = "noImageText">
+				The owner hasn't selected an image.
+			</div>
+			);
+		}
+	}
+
+	private renderRemote()
+	{
+		
+		return (
+			<div className={ "FullPage" } >
+				<div>
+					<AvStandardGrabbable modelUri={ "models/HandleModel.glb" } 
+						modelScale={ 0.8 }
+						style={ GrabbableStyle.Gadget }
+						remoteInterfaceLocks={ [] }
+						remoteGadgetCallback={ this.onRemoteEvent }
+						ref={ this.grabbableRef }
+						>
+						<AvTransform translateY={ 0.21 } >
+							<AvPanel interactive={true} widthInMeters={ 0.3 }/>
+						</AvTransform>
+					</AvStandardGrabbable>
+					{ this.renderRemoteImage() }
+				</div>
+			</div> );
+
+	}
+
+	public render()
+	{
+		if( AvGadget.instance().isRemote )
+		{
+			return this.renderRemote();
+		}
+		else
+		{
+			return this.renderLocal();
+		}
 	}
 
 }
