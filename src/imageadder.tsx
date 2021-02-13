@@ -5,7 +5,7 @@ import Dropzone from 'react-dropzone';
 
 interface ImageAddedProps
 {
-	addImageCallback: ( url: string ) => void;
+	addImageCallback: ( url: string, remoteUrl: string ) => void;
 	validateUrlCallback: ( url: string ) => boolean;
 }
 
@@ -48,7 +48,8 @@ export class ImageAdder extends React.Component< ImageAddedProps, ImageAdderStat
 	{
 		if (this.props.validateUrlCallback(this.state.url))
 		{
-			this.props.addImageCallback( this.state.url );
+			// use the same URL for both ends for hosted images
+			this.props.addImageCallback( this.state.url, this.state.url );
 			event.preventDefault();
 		}
 		else
@@ -65,11 +66,12 @@ export class ImageAdder extends React.Component< ImageAddedProps, ImageAdderStat
 	{
 		let res = await this.ipfsNode.add( new Uint8Array( result ) );
 		
-		const url = "/ipfs/" + res.cid;
+		// Use a hosted URL for the remote end 
+		const url = "https://ipfs.io/ipfs/" + res.cid;
 		console.log( `Adding ${ file.name } as ${ url }` );
 		const blobData: ArrayBuffer[] = [result]; 
 		const imageBlob = new Blob(blobData);
-		this.props.addImageCallback( URL.createObjectURL(imageBlob) );
+		this.props.addImageCallback( URL.createObjectURL(imageBlob), url );
 		//this.props.addImageCallback("https://ipfs.io/ipfs/" + res.cid) <- this system is more efficient but slower as it relies on waiting for a return from the ipfs server and that server gets alot of requests
 	}
 
