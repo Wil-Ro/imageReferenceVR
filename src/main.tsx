@@ -200,6 +200,13 @@ interface MyGadgetState
 	remoteUrl: string;
 }
 
+interface MyGadgetRemoteParams
+{
+	remoteUrl: string;
+}
+
+const k_ImageGalleryInterface = "image-gallery@1";
+
 class MyGadget extends React.Component< {}, MyGadgetState >
 {
 	private addImagePopup: Window = null;
@@ -237,15 +244,51 @@ class MyGadget extends React.Component< {}, MyGadgetState >
 		}
 	}
 
+	@bind
+	private sendRemoteEvent( event: ImageMenuEvent )
+	{
+		if( event.type == ImageMenuEventType.SetImage )
+		{
+			this.setState( { remoteUrl: event.url } );
+		}
+		this.grabbableRef.current?.sendRemoteEvent( event, true );
+	}
+
+	public componentDidMount()
+	{
+		if( AvGadget.instance().isRemote )
+		{
+			let params = AvGadget.instance().findInitialInterface( k_ImageGalleryInterface )?.params as MyGadgetRemoteParams;
+			if( params?.remoteUrl )
+			{
+				this.setState( { remoteUrl: params.remoteUrl } );
+			}
+		}
+	}
+
 	private renderLocal()
 	{
+		let remoteInitLocks: InitialInterfaceLock[] = [];
+
+		if( this.state.remoteUrl )
+		{
+			remoteInitLocks.push( {
+				iface: k_ImageGalleryInterface,
+				receiver: null,
+				params: 
+				{
+					remoteUrl: this.state.remoteUrl,
+				}
+			} );
+		}
+
 		return (
 			<div className={ "FullPage" } >
 				<div>
 					<AvStandardGrabbable modelUri={ "models/HandleModel.glb" } 
 						modelScale={ 0.8 }
 						style={ GrabbableStyle.Gadget }
-						remoteInterfaceLocks={ [] }
+						remoteInterfaceLocks={ remoteInitLocks }
 						ref={ this.grabbableRef }
 						>
 						<AvTransform translateY={ 0.21 } >
@@ -254,8 +297,7 @@ class MyGadget extends React.Component< {}, MyGadgetState >
 					</AvStandardGrabbable>
 				</div>
 				<ImageMenu ref={ this.imageMenuRef }
-					sendEventCallback={ ( event: ImageMenuEvent ) => 
-						{ this.grabbableRef.current?.sendRemoteEvent( event, true ); } }/>
+					sendEventCallback={ this.sendRemoteEvent }/>
 				<button id = "uploadButton" onClick = { () => this.openWindow() }>🗅</button>
 			</div> );
 	}
