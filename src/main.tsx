@@ -134,7 +134,7 @@ class ImageMenu extends React.Component< ImageMenuProps, ImageMenuState> //class
 			return(
 				<div>
 					<button className = "imageDisplayBackButton" onClick = {() => this.removeImage()}>ᐊ</button>
-					<div style = {{textAlign: "center"}}>
+					<div className = "displayedImageContainer">
 						<img className = "displayedImage" src = { url }/>	
 					</div>
 				</div>
@@ -366,8 +366,8 @@ renderAardvarkRoot( "root", <MyGadget/> );
 //DONT FORGET TO RUN NPM START AAAAAAAAAAAAAAAAAAAA YOU ALWAYS FORGETTT
 /*
 todo:
-add ability for remote users?
 look into using avmodel to create pop-up images
+Ipfs node dies when image adder is closed and it doesnt come back when re-opened, fix that at somepoint
 
 
 useful links:

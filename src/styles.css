@@ -1,3 +1,9 @@
+@font-face{
+    font-family:"roboto";
+    font-weight: 200;
+    src: url("./fonts/Roboto/RobotoMono-VariableFont_wght.ttf")
+}
+
 body, html
 {
 	background-color: transparent;
@@ -6,8 +12,9 @@ body, html
 }
 
 button{
-	background-color: transparent;
-	border: border: 1px solid black;
+	background-color: white;
+	border: none;
+	border-radius: 8px;
 }
 
 .Button 
@@ -48,8 +55,9 @@ button{
 
 .imageMenuButton{
 	height: 100%;
-	width: 100%; /*things to try: max width?*/
+	width: 100%;
 	box-sizing:border-box;
+	border-radius: 2px;
 
 }
 
@@ -60,7 +68,8 @@ button{
 
 .imageMenuDeleteButton{
 	font-size: 2rem;
-	background-color: transparent;
+	border-radius: 3px;
+	background-color: white;
 }
 
 .imageMenuImage{
@@ -76,40 +85,45 @@ button{
 	margin-left: 4vw;
 }
 
-.displayedImage{
-	width: 90%;
-	height: auto;
-	bottom: 0px;
-
-	text-align: center;
-}
-
 .imageDisplayBackButton{
 	font-size: 3rem;
-	background-color: transparent;
 }
 
 .imageDisplayBackButton:hover{
-	background-color: rgba(128, 128, 128, 0.234);
+	background-color: rgb(128, 128, 128);
 }
 
 .imageMenuDeleteButton:hover{
-	background-color: rgba(128, 128, 128, 0.234);
+	background-color: rgb(128, 128, 128);
+}
+
+.displayedImageContainer{
+	object-fit: contain;
+	width: 95vw;
+	height: 100vh;
+}
+
+.displayedImage{
+	text-align: center;
+	object-fit: contain;
+	width: 100%;
+	height: 100%
 }
 
 #noImageText{
 	font-size: 3rem;
-	background-color: transparent;
+	background-color: white;
+	border-radius: 8px;
 	margin: 0 auto;
-	border: 1px solid black
+	font-family: "roboto"; /*setting text here as its the only place we use it other than the pop-up and it looks bad in the popup*/
+	letter-spacing: -4 px;
 }
 
 #uploadButton{
 	font-size: 3rem;
 	margin-top: 5vh;
-	background-color: transparent;
 }
 
 #uploadButton:hover{
-	background-color: rgba(128, 128, 128, 0.234);
+	background-color: rgb(128, 128, 128);
 }
